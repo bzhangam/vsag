@@ -62,8 +62,8 @@ option (ENABLE_INTEL_MKL "Enable intel-mkl (x86 platform only)" ON)
 option (ENABLE_CXX11_ABI "Use CXX11 ABI" ON)
 option (ENABLE_LIBCXX "Use libc++ instead of libstdc++" OFF) # only support in clang
 option (ENABLE_TOOLS "Whether compile vsag tools" OFF)
-option (ENABLE_EXAMPLES "Whether compile examples" ON)
-option (ENABLE_TESTS "Whether compile vsag tests" ON)
+option (ENABLE_EXAMPLES "Whether compile examples" OFF)
+option (ENABLE_TESTS "Whether compile vsag tests" OFF)
 option (DISABLE_SSE_FORCE "Force disable sse and higher instructions" OFF)
 option (DISABLE_AVX_FORCE "Force disable avx and higher instructions" OFF)
 option (DISABLE_AVX2_FORCE "Force disable avx2 and higher instructions" OFF)
@@ -167,8 +167,8 @@ if (EXISTS "/opt/alibaba-cloud-compiler/lib64/")
 endif ()
 string (JOIN " " ld_flags ${ld_flags})
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fno-lto")
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fno-lto")
 
 set (common_cmake_args
         "-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}"
@@ -182,14 +182,20 @@ set (common_cmake_args
         "-DCMAKE_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX}/lib:/opt/alibaba-cloud-compiler/lib64"
 )
 
+if (APPLE)
+    set(VSAG_RPATH "-Wl,-rpath,@loader_path")
+else()
+    set(VSAG_RPATH "-Wl,-rpath=\\$ORIGIN")
+endif()
+
 set (common_configure_envs
         "env"
         "CC=${CMAKE_C_COMPILER}"
         "CXX=${CMAKE_CXX_COMPILER}"
-        "CFLAGS=${CMAKE_C_FLAGS} -fno-omit-frame-pointer -fPIC -O2 -D_DEFAULT_SOURCE -D_GNU_SOURCE -gdwarf-4"
-        "CXXFLAGS=${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fPIC -O2 -D_DEFAULT_SOURCE -D_GNU_SOURCE -gdwarf-4"
-        "CPPFLAGS=-isystem ${CMAKE_INSTALL_PREFIX}/include"
-        "LDFLAGS=-Wl,-rpath=\\\\$\\$ORIGIN ${ld_flags}"
+        "CFLAGS=${CMAKE_C_FLAGS} -fno-omit-frame-pointer -fPIC -O2 -D_DEFAULT_SOURCE -D_GNU_SOURCE -gdwarf-4 -fno-lto"
+        "CXXFLAGS=${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fPIC -O2 -D_DEFAULT_SOURCE -D_GNU_SOURCE -gdwarf-4 -fno-lto"
+        "CPPFLAGS=-isystem ${CMAKE_INSTALL_PREFIX}/include -fno-lto"
+        "LDFLAGS=${VSAG_RPATH} ${ld_flags} -fno-lto"
         "PATH=${BUILDING_PATH}:$ENV{PATH}"
         "ACLOCAL_PATH=${ACLOCAL_PATH}"
 )

@@ -22,9 +22,9 @@ ExternalProject_Add(
         OMP_NUM_THREADS=1
         PATH=/usr/lib/ccache:$ENV{PATH}
         LD_LIBRARY_PATH=/opt/alibaba-cloud-compiler/lib64/:$ENV{LD_LIBRARY_PATH}
-        make USE_THREAD=0 USE_LOCKING=1 DYNAMIC_ARCH=1 -j${NUM_BUILDING_JOBS}
+        make NO_LTO=1 USE_OPENMP=0 USE_THREAD=0 USE_LOCKING=1 DYNAMIC_ARCH=1 CFLAGS+=" -fno-lto" FFLAGS+=" -fno-lto" LDFLAGS+=" -fno-lto" -j${NUM_BUILDING_JOBS}
     INSTALL_COMMAND
-        make DYNAMIC_ARCH=1 PREFIX=${install_dir} install
+        make NO_LTO=1 USE_OPENMP=0 DYNAMIC_ARCH=1 PREFIX=${install_dir} install
     BUILD_IN_SOURCE 1
     LOG_CONFIGURE TRUE
     LOG_BUILD TRUE

@@ -39,6 +39,7 @@ ExternalProject_Add(
             runtime-link=static
             link=static
             variant=release
+            toolset=clang
     BUILD_IN_SOURCE 1
     INSTALL_COMMAND ""
     LOG_CONFIGURE TRUE
